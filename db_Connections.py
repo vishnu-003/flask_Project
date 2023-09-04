@@ -2,7 +2,19 @@ from flask import Flask, render_template, request
 from flask_mail import Mail, Message
 import pymysql
 
+
 app=Flask(__name__)
+mail= Mail(app)
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'liarchary007@gmail.com'
+app.config['MAIL_PASSWORD'] = 'yigovfrnnesvnbza'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
+
+
 
 def db_connection():
     timeout = 10
@@ -21,22 +33,7 @@ def db_connection():
 
     return connection
 
-mail= Mail(app)
 
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'liarchary007gmail.com'
-app.config['MAIL_PASSWORD'] = 'pevf qmil csek nvzm'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-mail = Mail(app)
-
-@app.route("/")
-def index(email):
-   msg = Message('Hello', sender = 'liarchary007@gmail.com', recipients = ['{email}'])
-   msg.body = "Hello Flask message sent from Flask-Mail"
-   mail.send(msg)
-   return "Sent"
 
 @app.route('/', methods =['GET', 'POST'])
 
@@ -78,23 +75,24 @@ def register():
         cur = conn.cursor()
         Query = f"INSERT INTO `defaultdb`.`Users` (`lastname`, `firstname`, `email`, `mobile`, `city`,`passwrd`) VALUE ('{lastname}', '{firstname}', '{email}', '{mobile}', '{city}','{password}');"
         print(Query)
-
-        index(email)
-        
         cur.execute(Query)
         conn.commit()
+        
         cur.close()
         conn.close()
-        print(cur.fetchall())
-
-        return render_template("login.html")
-    
-
-    
-
         
+        # send email
+        email = request.form["email"]
+        lastname = request.form['lastname']
+        msg = Message('Welcome to our website!', sender = 'liarchary007@gmail.com', recipients = [email])
+
+        msg.body = "Thank you for registering on our website. We hope you enjoy our services!"
+        mail.send(msg)
+        data = {
+            "lastname": lastname,
+        }
+        return render_template("success.html",data=data)
+    
 
 if __name__=='__main__':
     app.run()
-
- 
