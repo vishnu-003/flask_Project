@@ -2,15 +2,25 @@
 
 <html>
 
- 
+<head>
+    <style>
+        table, th, td {
+          border: black;
+          border-collapse: collapse;
+        }
+        
+        table.center {
+          margin-left: auto; 
+          margin-right: auto;
+        }
+        </style>
+</head>
 
 <body>
 
   <form action="http://localhost:5000/login" method="POST">
 
-    <table>
-
-       
+    <table class="center">
 
         <tr><td>Email</td>
 
@@ -22,11 +32,10 @@
 
             <td><input style="align-content: center;"type="password" name="password"></td></tr>
 
-        <tr><td><input type="submit" value="login"></td></tr>
-        <p class="bottom">Register: <a class="bottom" href="{{url_for('register')}}">Sing Up here</a></p>
-
+        <tr><td><input style="align-items:center;" type="submit" value="login"></td></tr>
+       
     </table>
-
+    <p style="text-align:center;">register: <a class="center" href="{{url_for('register')}}">Sing Up here</a></p>
     </form>
 
  

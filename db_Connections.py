@@ -22,7 +22,7 @@ def db_connection():
 
  
 
-@app.route('/login', methods =['GET', 'POST'])
+@app.route('/', methods =['GET', 'POST'])
 
 def login():
      if request.method == 'GET':
