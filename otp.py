@@ -97,7 +97,7 @@ def register():
         s.starttls()
         s.login('liarchary007@gmail.com', 'yigovfrnnesvnbza')
         #emailid = input(email)
-        s.sendmail('liarchary007@gmail.com',email,msg)
+        s.sendmail('&&&&&&&&&&&',email,msg)
         a = input("Enter Your OTP >>: ")
         if a == OTP:
             print("Verified")
