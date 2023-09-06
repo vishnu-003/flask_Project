@@ -1,11 +1,17 @@
+<!DOCTYPE html>
 <html>
-   
-    <head>
-        <title>OTP Verification</title>
-    </head>
-    <body>
-        <h1>Invalid OTP</h1>
-        <p style="text-align:center;"><a class="center" href="{{url_for('register')}}">Sign-Up</a></p>
-    </body>
+<body>
 
+<h1>A Hidden Field (look in source code)</h1>
+
+<form action = "register" method = "POST" id="register-form">  
+    <label for="email">Email:</label>
+      <input type="text" id="email" name="email" disabled><br><br>
+      <p>OTP <input type = "text" name = "otp"</p>
+      <input type="submit" value="verify">
+</form>
+
+<p><strong>Note:</strong> The hidden field is not shown to the user, but the data is sent when the form is submitted.</p>
+
+</body>
 </html>

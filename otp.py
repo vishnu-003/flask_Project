@@ -123,17 +123,17 @@ def register():
                     connection.close()
                     for i in range(4):
                         OTP+=digits[math.floor(random.random()*10)]
-                        
-                        otp = OTP + " is your OTP"
-                        msg= otp
-                        s = smtplib.SMTP('smtp.gmail.com', 587)
-                        s.starttls()
-                        b= os.environ.get('MAIL_PASSWORD')
-                        s.login('liarchary007@gmail.com', b)
+                    otp = OTP + " is your OTP"
+                    msg= otp
+                    s = smtplib.SMTP('smtp.gmail.com', 587)
+                    s.starttls()
+                    username = os.environ.get('MAIL_USERNAME')
+                    password = os.environ.get('MAIL_PASSWORD')
+                    s.login(username, password)
                         #emailid = input(email)
-                        s.sendmail('liarchary007@gmail.com',email,msg)
-                        a = input("Enter Your OTP >>: ")
-                        if a == OTP:
+                    s.sendmail('liarchary007@gmail.com',email,msg)
+                    a = input("Enter Your OTP >>: ")
+                    if a == OTP:
                             print("Verified")
                             # send email
                             
@@ -144,15 +144,15 @@ def register():
                                 }
                             
                             msg = Message('Welcome to our website!', sender = 'liarchary007@gmail.com', recipients = [email])
-                            msg.body = f"Thank you {lastname} for registering on our website. We hope you enjoy our services!"
+                            msg.body = f"Hello!{lastname}Thank you  for registering on our website. We hope you enjoy our services!"
                             mail.send(msg)
                             
                             message = "Registration Successful."
 
                             return render_template('register.html', message=message,data=data)
        
-                        else:
-                            return render_template("verify.html")
+                    else:
+                            return render_template("invalidotp.html")
 
                     
 

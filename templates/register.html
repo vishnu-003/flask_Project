@@ -4,7 +4,7 @@
 
        <h3>Register the customer, fill the following form.</h3>  
 
-      <form action = "http://localhost:5000/register" method = "POST">  
+      <form action = "http://localhost:5000/register" method = "POST" id="register-form">  
 
          
 
@@ -19,6 +19,8 @@
          <p>City <input type = "text" name="city" required/></p>
 
          <p>Password <input type = "password" name = "password" required /></p>
+         
+         <input type="hidden" id="otp" name="otp" value="verify">
 
          <br>
          <p class="bottom">Already have an account?  <a class="bottom" href="{{url_for('login')}}"> Sign In here</a></p>

@@ -5,6 +5,14 @@ import os
 import math
 import random
 import smtplib
+from dotenv import load_dotenv 
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(current_directory, '.env')
+
+# Load environment variables from the .env file
+load_dotenv(dotenv_path)
+
 
 
 app=Flask(__name__)
@@ -12,8 +20,8 @@ mail= Mail(app)
 
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'liarchary007@gmail.com'
-app.config['MAIL_PASSWORD'] = 'yigovfrnnesvnbza'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
@@ -57,7 +65,7 @@ def login():
         if len(details)==0:
             return "user not found"
         elif len(details) > 0:
-            return render_template('profile.html')             
+            return "Login Successful"            
 
            
 
@@ -78,45 +86,82 @@ def register():
         mobile=request.form["mobile"]
         city=request.form["city"]
         password=request.form["password"]
-        conn = db_connection()
-        cur = conn.cursor()
-        Query = f"INSERT INTO `defaultdb`.`Users` (`lastname`, `firstname`, `email`, `mobile`, `city`,`passwrd`) VALUE ('{lastname}', '{firstname}', '{email}', '{mobile}', '{city}','{password}');"
-        print(Query)
-        cur.execute(Query)
-        conn.commit()
-        
-        cur.close()
-        conn.close()
 
-        for i in range(4):
-          OTP+=digits[math.floor(random.random()*10)]
-          
-        otp = OTP + " is your OTP"
-        msg= otp
-        s = smtplib.SMTP('smtp.gmail.com', 587)
-        s.starttls()
-        s.login('liarchary007@gmail.com', 'yigovfrnnesvnbza')
-        #emailid = input(email)
-        s.sendmail('liarchary007@gmail.com',email,msg)
-        a = input("Enter Your OTP >>: ")
-        if a == OTP:
-            print("Verified")
-             # send email
-            
-            email = request.form["email"]
-            lastname = request.form['lastname']
-            data = {
-                    "lastname": lastname,
-                }
-            
-            msg = Message('Welcome to our website!', sender = 'liarchary007@gmail.com', recipients = [email])
-            msg.body = f"Thank you {lastname} for registering on our website. We hope you enjoy our services!"
-            mail.send(msg)
-            
-            return render_template("success.html",data=data)
+        if 'email' in request.form:
+
+                query= f"SELECT * from Users where email = '{email}'"
+
+                connection = db_connection()
+
+                connection_cursor = connection.cursor()
+
+                connection_cursor.execute(query)
+
+                users=connection_cursor.fetchall()
+
+                print(len(users))
+
+                if len(users)>0:
+
+                    message = "The email address already exists"
+
+                    connection_cursor.close()
+
+                    connection.close()
+
+                    return render_template('register.html', message=message)
+
+                else:
+                    query = f"INSERT INTO Users (lastname, firstname, email, mobile, city,passwrd) VALUE ('{lastname}', '{firstname}', '{email}', '{mobile}', '{city}','{password}');"
+
+                    connection_cursor.execute(query)
+
+                    connection.commit()
+
+                    connection_cursor.close()
+
+                    connection.close()
+                    for i in range(4):
+                        OTP+=digits[math.floor(random.random()*10)]
+                    otp = OTP + " is your OTP"
+                    msg= otp
+                    s = smtplib.SMTP('smtp.gmail.com', 587)
+                    s.starttls()
+                    username = os.environ.get('MAIL_USERNAME')
+                    password = os.environ.get('MAIL_PASSWORD')
+                    s.login(username, password)
+                        #emailid = input(email)
+                    s.sendmail('liarchary007@gmail.com',email,msg)
+                    a = input("Enter Your OTP >>: ")
+                    if a == OTP:
+                            print("Verified")
+                            # send email
+                            
+                            email = request.form["email"]
+                            lastname = request.form['lastname']
+                            data = {
+                                    "lastname": lastname,
+                                }
+                            
+                            msg = Message('Welcome to our website!', sender = 'liarchary007@gmail.com', recipients = [email])
+                            msg.body = f"Hello!{lastname}Thank you  for registering on our website. We hope you enjoy our services!"
+                            mail.send(msg)
+                            
+                            message = "Registration Successful."
+
+                            return render_template('register.html', message=message,data=data)
        
+                    else:
+                            return render_template("verify.html")
+
+                    
+
         else:
-           return render_template("verify.html")
+
+            message = "Please enter an email address"
+
+        return render_template('register.html', message=message)
+
        
 if __name__=='__main__':
     app.run()
