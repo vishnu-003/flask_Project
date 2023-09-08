@@ -37,9 +37,10 @@ def validate_otp(email,otp):
         print(len(users))
         connection_cursor.close()
         connection.close()
+        d = os.environ.get("MAIL_USERNAME")
         if len(users)>0:
             email = request.form["email"]
-            msg = Message('Welcome to our website!', sender = 'liarchary007@gmail.com', recipients = [email])
+            msg = Message('Welcome to our website!', sender = d, recipients = [email])
             msg.body = f"Thank you for registering on our website. We hope you enjoy our services!"
             mail.send(msg)
             return True

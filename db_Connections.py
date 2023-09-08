@@ -37,9 +37,10 @@ def validate_otp(email,otp):
         print(len(users))
         connection_cursor.close()
         connection.close()
+        d = os.environ.get("MAIL_USERNAME")
         if len(users)>0:
             email = request.form["email"]
-            msg = Message('Welcome to our website!', sender = 'liarchary007@gmail.com', recipients = [email])
+            msg = Message('Welcome to our website!', sender = d, recipients = [email])
             msg.body = f"Thank you for registering on our website. We hope you enjoy our services!"
             mail.send(msg)
             return True
@@ -91,20 +92,20 @@ def login():
            return render_template('login.html',message=message)
         
 #Profile Functionality   
-@app.route('/profile')
+@app.route('/profile',methods=['POST','GET'])
 def profile():
-    if 'user_id' in session:
-        connection = db_connection()
-        connection_cursor = connection.cursor()
-        user_id = session['user_id']
-        query=f"SELECT * FROM Details WHERE personid = {user_id}"
-        connection_cursor.execute(query)
-        users=connection_cursor.fetchone()
-        print(users)
-        return render_template("profile.html",users=users)
-    else:
-        message="You must be logged in"
-        return render_template('login.html',message=message)
+        if 'user_id' in session:
+            connection = db_connection()
+            connection_cursor = connection.cursor()
+            user_id = session['user_id']
+            query=f"SELECT * FROM Details WHERE personid = {user_id}"
+            connection_cursor.execute(query)
+            users=connection_cursor.fetchone()
+            print(users)
+            return render_template("profile.html",users=users)
+        else:
+            message="You must be logged in"
+            return render_template('login.html',message=message)
     
 #Registration Functionality
 @app.route('/register', methods =['GET', 'POST'])
@@ -160,7 +161,13 @@ def register():
         else:
             message = "Please another mail"
         return render_template('login.html', message=message)
-    
+
+
+# @app.route('/Home')
+# def Home():
+#     return redirect(url_for('Home'))
+
+
 #Logout Functionality   
 @app.route('/logout')
 def logout():
