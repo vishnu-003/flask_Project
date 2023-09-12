@@ -190,6 +190,7 @@ def gallery():
             print(query)
             connection_cursor.execute(query)
             images = connection_cursor.fetchall()
+            print(type(images))
             print(f"These are the images---->{images}")
             connection_cursor.close()
             connection.close()
@@ -231,7 +232,7 @@ def uploads(user_id, filename):
     session_user_id=session.get('user_id')
     print(type(session_user_id))
     if session_user_id is not None:
-         print(type(user_id ))
+         print(user_id )
          if str(session_user_id)== str(user_id):
            return send_file(f"uploads/{user_id}/{filename}")
          else:
