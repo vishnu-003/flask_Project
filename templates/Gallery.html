@@ -3,31 +3,34 @@
 
 <body>
    {% include 'navigation.html' %}
+</div>
+<div class="nextPreviousButtons">
+   <a href="editprofile" class="previous round">&#8249;</a>
+   <a href="home" class="next round">&#8250;</a>
+ </div>
 
-   <div class="container">
-      <h2>imageGallery</h2>
-      <form action = "/gallery" method = "post" enctype="multipart/form-data">  
-         <input type="file" name="file" />  
-         <input type = "submit" value="Upload">  
-     </form> 
-
-      <div class="row">
-         {% for image in images %}
-         <div class="col-md-4">
-            <div class="thumbnail">
-               <a href="/uploads/{{image['user_id']}}/{{image['filename']}}"  target="_blank">
-                  <img src="/uploads/{{image['user_id']}}/{{image['filename']}}" alt="Fjords" style="width: auto; height: 195px;">
-                  <div class="caption">
-                  </div>
-               </a>
-            </div>
+<div class="container">
+   <h2>Image Gallery</h2>
+   <form action="/gallery" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" />
+      <input type="submit" value="Upload">
+   </form>
+   <div class="row">
+      {% for image in images %}
+      <div class="col-md-4">
+         <div class="thumbnail">
+            <a href="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" target="_blank">
+               <img src="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" alt="images" style="width: auto; height: 195px;">
+               <div class="caption">
+                  <form method="POST" action="/delete/{{ image['user_id'] }}/{{ image['filename'] }}">
+                     <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+               </div>
+            </a>
          </div>
-         {% endfor %}
-
       </div>
+      {% endfor %}
    </div>
+
 </body>
-
 </html>
-
-

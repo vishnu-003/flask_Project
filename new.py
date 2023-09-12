@@ -162,7 +162,6 @@ def register():
                 connection.commit()
                 connection_cursor.close()
                 connection.close()
-
                 msg1 = Message(subject='OTP',sender ='liarchary007@gmail.com',recipients = [email] )
                 msg1.body = str(otp)
                 mail.send(msg1)
@@ -172,7 +171,7 @@ def register():
             message = "Please another mail"
         return render_template('login.html', message=message)
 
-
+#Home Page
 @app.route('/home')
 def home():
     if 'user_id' in session:
@@ -226,7 +225,7 @@ def gallery():
             
             return render_template('gallery.html')
 
-   
+#Upload Functionality
 @app.route('/uploads/<user_id>/<filename>',methods=["GET"])
 def uploads(user_id, filename):
     session_user_id=session.get('user_id')
@@ -238,9 +237,29 @@ def uploads(user_id, filename):
          else:
            return "Forbidden", 403
     return "Forbidden", 403
-        
-    
-    
+
+#Delete functionality
+@app.route('/delete/<int:user_id>/<filename>', methods=['POST'])
+def delete_image(user_id, filename):
+    session_user_id = session.get('user_id')
+    if session_user_id is not None and str(session_user_id) == str(user_id):
+        print(f"it is in deleting function{session_user_id}")
+        path_to_delete = os.path.join('uploads', str(user_id), filename)
+        if os.path.exists(path_to_delete):
+            os.remove(path_to_delete)
+            connection = db_connection()
+            connection_cursor = connection.cursor()
+            query = f"DELETE FROM user_uploads WHERE user_id='{user_id}' AND filename='{filename}';"
+            connection_cursor.execute(query)
+            connection.commit()
+            connection_cursor.close()
+            connection.close()
+        return redirect(url_for('gallery'))
+    else:
+        return "Forbidden", 403
+
+
+#Edit Profile Page
 @app.route('/editprofile')
 def editprofile():
     if 'user_id' in session:

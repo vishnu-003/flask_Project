@@ -8,8 +8,22 @@
       <input type="file" id="myFile" name="file">
       <input type="submit">
     </form>
-        </div>
-        
+   </form>
+   <div class="row">
+      {% for image in images %}
+      <div class="col-md-4">
+         <div class="thumbnail">
+            <a href="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" target="_blank">
+               <img src="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" alt="images" style="width: auto; height: 195px;">
+               <div class="caption">
+                  <form method="POST" action="/delete/{{ image['user_id'] }}/{{ image['filename'] }}">
+                     <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+               </div>
+            </a>
+         </div>
+      </div>
+      {% endfor %}
    </div>
 </body>
 
