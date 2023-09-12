@@ -1,29 +1,25 @@
 <!DOCTYPE html>
 <html>
-  {% include 'head.html' %}
-<body>
-  {% include 'navigation.html' %}
-<form action = "/profile" method = "POST" id="register-form">  
-
-<h2 style="text-align:center">User Profile </h2>
-
-<div class="card">
-  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2NkB-RgBfXlPSVMe3YqfR9Pps37u3YZjcrw&usqp=CAU" alt="vishnu" style="width:60%"/>
-  {% if users is defined and users %}
-  <h1>{{ users["lastname"] }}</h1>
-  <p>PersonID: {{ users["personid"] }}</p>
-  <p>LastName: {{ users["lastname"] }}</p>
-  <p>FirstName: {{ users["firstname"] }}</p>
-  <p>Email: {{ users["email"] }}</p>
-  <p>Mobile: {{ users["mobile"] }}</p>
- {% endif %}
-   
-  <div style="margin: 24px 0;">
-    <a href="https://www.linkedin.com/in/svishnu-vardhan-90a5b7221/"><i class="fa fa-linkedin"></i></a>  
-    <a href="https://github.com/vishnu-003"><i class="fa fa-github"></i></a> 
-  </div>
-  
-</div>
-</form>
-</body>
+   {% include 'head.html' %}
+   <body>
+      {% include 'navigation.html' %}
+      <form action = "/profile" method = "POST" id="register-form">
+         <h2 style="text-align:center">User Profile </h2>
+         <div class="card">
+            <img src="static\images\Vishnu.jpg" alt="vishnu" style="width:60%"/>
+            {% if users is defined and users %}
+            <h1>{{ users["lastname"] }}</h1>
+            <p>PersonID: {{ users["personid"] }}</p>
+            <p>LastName: {{ users["lastname"] }}</p>
+            <p>FirstName: {{ users["firstname"] }}</p>
+            <p>Email: {{ users["email"] }}</p>
+            <p>Mobile: {{ users["mobile"] }}</p>
+            {% endif %}
+            <div style="margin: 24px 0;">
+               <a href="https://www.linkedin.com/in/svishnu-vardhan-90a5b7221/"><i class="fa fa-linkedin"></i></a>  
+               <a href="https://github.com/vishnu-003"><i class="fa fa-github"></i></a> 
+            </div>
+         </div>
+      </form>
+   </body>
 </html>

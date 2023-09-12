@@ -1,39 +1,17 @@
-<!DOCTYPE html>
-
 <html>
-
-<head>
-    <style>
-        table, th, td {
-          border: black;
-          border-collapse: collapse;
-        }
-        
-        table.center {
-          margin-left: auto; 
-          margin-right: auto;
-        }
-    
-
-
-        </style>
-</head>
-
-<body>
-
-  <form action="/" method="POST">
-    <table class="center">
-      {% if message %}
-      {{message}}
-      {% endif%}
-         <tr><td>Email</td>
-            <td><input style="align-content: center;" type="email" name="email1"></td></tr>
-            <tr><td>Password</td>
-                <td><input style="align-content: center;"type="password" name="password"></td></tr>
-                <tr><td><input style="align-items:center;" type="submit" value="login"></td></tr>
-            </table>
-           
-            <p style="text-align:center;">register: <a class="center" href="{{url_for('register')}}">Sing Up here</a></p>
-    </form>
-</body>
+   <body align="center">
+      <h3>Login Here</h3>
+      <br>
+      <form action = "/" method = "POST" >
+      <div>
+         <p>Email_ID <input type = "email" name="email1" placeholder="Your's Email" required/></p>
+         <p>Password <input type = "password" name="password" placeholder="Password " required/></p>
+         <div>
+        <p style="text-align:center;">register: <a class="center" href="{{url_for('register')}}">Sing Up here</a></p>
+         <p><input type = "submit" value = "login" /></p>
+          {% if message %}
+            {{message}}
+            {% endif%}
+      </form>
+   </body>
 </html>

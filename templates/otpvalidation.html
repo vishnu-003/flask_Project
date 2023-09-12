@@ -1,22 +1,13 @@
 <!DOCTYPE html>
 <html>
-<body>
-
-
-<h3>Enter OTP sent to your email: {{email}}</h3>
-
-<form action = "register" method = "POST" id="register-form">  
-
-    <label for="email"></label>
-      <input type="hidden" id="email" name="email" value="{{email}}" ><br>
-      
-      <p>OTP <input type = "text" name = "otp"</p>
-      <input type="hidden" name="otpvalidation">
-      <input type="submit" value="verify">
-
-</form>
-
-
-
-</body>
+   <body>
+      <h3>Enter OTP sent to your email: {{email}}</h3>
+      <form action = "register" method = "POST" id="register-form">
+         <label for="email"></label>
+         <input type="hidden" id="email" name="email" value="{{email}}" ><br>
+         <p>OTP <input type = "text" name = "otp"</p>
+         <input type="hidden" name="otpvalidation">
+         <input type="submit" value="verify">
+      </form>
+   </body>
 </html>

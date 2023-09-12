@@ -88,7 +88,7 @@ def login():
                 session['user_id'] = details['personid']
                 return redirect(url_for('profile'))  
         else:
-           message = "User not found"
+           message = "Wrong Username or Password"
            return render_template('login.html',message=message)
         
 #Profile Functionality   
@@ -163,9 +163,21 @@ def register():
         return render_template('login.html', message=message)
 
 
-# @app.route('/Home')
-# def Home():
-#     return redirect(url_for('Home'))
+@app.route('/home')
+def home():
+    if 'user_id' in session:
+     return render_template("home.html")
+
+@app.route('/gallery')
+def gallery():
+    if 'user_id' in session:
+     return render_template("gallery.html")
+    
+@app.route('/editprofile')
+def editprofile():
+    if 'user_id' in session:
+     return render_template("editprofile.html")
+    
 
 
 #Logout Functionality   

@@ -1,14 +1,15 @@
 <nav class="navbar navbar-default">
-    <div class="container-fluid">
-      <div class="navbar-header">
+  <div class="container-fluid">
+     <div class="navbar-header">
         <!-- <a class="navbar-brand" href="#">M</a> -->
-      </div>
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="Home.html">Home</a></li>
-        <li><a href="profile.html">Profile</a></li>
-        <li><a href="Gallery.html">Gallery</a></li>
+     </div>
+     <ul class="nav navbar-nav">
+        <li class="active"><a href="home">Home</a></li>
+        <li><a href="{{url_for('profile')}}">Profile</a></li>
+        <li><a href="editprofile">EditProfile</a></li>
+        <li><a href="gallery">Gallery</a></li>
         <li><a href="{{url_for('logout')}}">Logout</a></li>
-        <li><a href="#">EditProfile</a></li>
-      </ul>
-    </div>
-  </nav>
+       
+     </ul>
+  </div>
+</nav>

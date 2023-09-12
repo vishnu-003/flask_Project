@@ -1,7 +1,32 @@
 <html>
-    {% include 'head.html' %}
-    <body>
-        {% include 'navigation.html' %}
-        <h1>Gallery Page</h1>
-    </body>
+{% include 'head.html' %}
+
+<body>
+   {% include 'navigation.html' %}
+
+   <div class="container">
+      <h2>imageGallery</h2>
+      <form action = "/gallery" method = "post" enctype="multipart/form-data">  
+         <input type="file" name="file" />  
+         <input type = "submit" value="Upload">  
+     </form> 
+      <div class="row">
+
+         {% for image in images %}
+         <div class="col-md-4">
+            <div class="thumbnail">
+               <a href="/w3images/fjords.jpg" target="_blank">
+                  <img src="{{ image }}" alt="Fjords" style="width:100%">
+                  <div class="caption">
+                     
+                  </div>
+               </a>
+            </div>
+         </div>
+         {% endfor %}
+
+      </div>
+   </div>
+</body>
+
 </html>
