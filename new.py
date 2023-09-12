@@ -245,8 +245,10 @@ def delete_image(user_id, filename):
     if session_user_id is not None and str(session_user_id) == str(user_id):
         print(f"it is in deleting function{session_user_id}")
         path_to_delete = os.path.join('uploads', str(user_id), filename)
+        print(f"path_to_delete---->{path_to_delete}")
         if os.path.exists(path_to_delete):
             os.remove(path_to_delete)
+            print(f"After delete--->{path_to_delete}")
             connection = db_connection()
             connection_cursor = connection.cursor()
             query = f"DELETE FROM user_uploads WHERE user_id='{user_id}' AND filename='{filename}';"
