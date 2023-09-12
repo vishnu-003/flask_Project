@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request,redirect, session
+from flask import Flask, render_template, request,redirect, session,abort,make_response,jsonify, send_file, abort
 from flask_mail import Mail, Message
 import pymysql
 import os
 from flask import url_for
 from random import *
 from dotenv import load_dotenv 
+from werkzeug.utils import secure_filename
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(current_directory, '.env')
@@ -22,6 +23,7 @@ app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
 mail = Mail(app)
 
 #Validating the otp given by user
@@ -45,7 +47,15 @@ def validate_otp(email,otp):
             mail.send(msg)
             return True
         else:
-             return False
+            return False
+        
+
+#Handiling Extensions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 #Connecting to database
 def db_connection():
@@ -86,7 +96,7 @@ def login():
         if  details is not None:
             if details['email']==email and details['passwrd']==password:
                 session['user_id'] = details['personid']
-                return redirect(url_for('profile'))  
+                return redirect(url_for('home'))  
         else:
            message = "Wrong Username or Password"
            return render_template('login.html',message=message)
@@ -168,10 +178,66 @@ def home():
     if 'user_id' in session:
      return render_template("home.html")
 
-@app.route('/gallery')
+@app.route('/gallery',methods=["POST","GET"])
 def gallery():
-    if 'user_id' in session:
-     return render_template("gallery.html")
+    if request.method == 'GET':
+        if 'user_id'in session:
+            user_id=session.get('user_id')
+            connection = db_connection()
+            connection_cursor = connection.cursor()
+            query = f" SELECT  user_id,filename from user_uploads  WHERE user_id='{user_id}';"
+            print(query)
+            connection_cursor.execute(query)
+            images = connection_cursor.fetchall()
+            print(f"These are the images---->{images}")
+            connection_cursor.close()
+            connection.close()
+        return render_template('gallery.html',images=images)
+        
+    
+    if request.method == 'POST':
+        if 'user_id' in session and 'file' in request.files:
+            file=request.files['file']
+            print(file)
+            user_id=session['user_id']
+            print(user_id)
+            path = os.getcwd()
+            print(f"path----->{path}")
+            UPLOAD_FOLDER = os.path.join(path, 'uploads')
+        
+            if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    # for file in filename:
+                    print(f"actual filename------>{filename}")
+                    os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
+                    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+                    file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", file.filename))
+                    print("2342324223432")
+                    connection = db_connection()
+                    connection_cursor = connection.cursor()
+                    query = f"INSERT INTO user_uploads (user_id,filename) VALUE ('{user_id}', '{filename}');"
+                    print(query)
+                    connection_cursor.execute(query)
+                    connection.commit()
+                    connection_cursor.close()
+                    connection.close()
+            
+            return render_template('gallery.html')
+
+   
+@app.route('/uploads/<user_id>/<filename>',methods=["GET"])
+def uploads(user_id, filename):
+    session_user_id=session.get('user_id')
+    print(type(session_user_id))
+    if session_user_id is not None:
+         print(type(user_id ))
+         if str(session_user_id)== str(user_id):
+           return send_file(f"uploads/{user_id}/{filename}")
+         else:
+           return "Forbidden", 403
+    return "Forbidden", 403
+        
+    
     
 @app.route('/editprofile')
 def editprofile():

@@ -15,8 +15,8 @@
          {% for image in images %}
          <div class="col-md-4">
             <div class="thumbnail">
-               <a href="/w3images/fjords.jpg" target="_blank">
-                  <img src="{{ image }}" alt="Fjords" style="width:100%">
+               <a href="/uploads/{{image['user_id']}}/{{image['filename']}}"  target="_blank">
+                  <img src="/uploads/{{image['user_id']}}/{{image['filename']}}" alt="Fjords" style="width: auto; height: 195px;">
                   <div class="caption">
                      
                   </div>
@@ -30,3 +30,4 @@
 </body>
 
 </html>
+

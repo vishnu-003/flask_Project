@@ -5,6 +5,7 @@
       {% include 'navigation.html' %}
       <form action = "/profile" method = "POST" id="register-form">
          <h2 style="text-align:center">User Profile </h2>
+         
          <div class="card">
             <img src="static\images\Vishnu.jpg" alt="vishnu" style="width:60%"/>
             {% if users is defined and users %}
@@ -21,5 +22,6 @@
             </div>
          </div>
       </form>
+    
    </body>
 </html>

@@ -177,7 +177,8 @@ def register():
 def home():
     if 'user_id' in session:
      return render_template("home.html")
-
+    
+#Gallery Functionality
 @app.route('/gallery',methods=["POST","GET"])
 def gallery():
     if request.method == 'GET':
