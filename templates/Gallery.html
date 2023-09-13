@@ -4,15 +4,10 @@
 <body>
    {% include 'navigation.html' %}
 </div>
-<div class="nextPreviousButtons">
-   <a href="editprofile" class="previous round">&#8249;</a>
-   <a href="home" class="next round">&#8250;</a>
- </div>
-
 <div class="container">
    <h2>Image Gallery</h2>
    <form action="/gallery" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" />
+      <input type="file" name="file" multiple required/>
       <input type="submit" value="Upload">
    </form>
    <div class="row">
@@ -22,7 +17,7 @@
             <a href="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" target="_blank">
                <img src="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" alt="images" style="width: auto; height: 195px;">
                <div class="caption">
-                  <form method="POST" action="/delete/{{ image['user_id'] }}/{{ image['filename'] }}">
+                  <form method="POST" action="/delete/{{image['user_id']}}/{{image['filename']}}">
                      <button type="submit" class="btn btn-danger">Delete</button>
                   </form>
                </div>
@@ -31,6 +26,5 @@
       </div>
       {% endfor %}
    </div>
-
 </body>
 </html>

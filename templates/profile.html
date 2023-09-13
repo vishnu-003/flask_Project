@@ -6,10 +6,9 @@
       <div class="nextPreviousButtons">
          <a href="home" class="previous round">&#8249;</a>
          <a href="editprofile" class="next round">&#8250;</a>
-       </div>
+      </div>
       <form action = "/profile" method = "POST" id="register-form">
          <h2 style="text-align:center">User Profile </h2>
-         
          <div class="card">
             <img src="static\images\Vishnu.jpg" alt="vishnu" style="width:60%"/>
             {% if users is defined and users %}
@@ -19,6 +18,7 @@
             <p>FirstName: {{ users["firstname"] }}</p>
             <p>Email: {{ users["email"] }}</p>
             <p>Mobile: {{ users["mobile"] }}</p>
+            <p>Mobile: {{ users["city"] }}</p>
             {% endif %}
             <div style="margin: 24px 0;">
                <a href="https://www.linkedin.com/in/svishnu-vardhan-90a5b7221/"><i class="fa fa-linkedin"></i></a>  
