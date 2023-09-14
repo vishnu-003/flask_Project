@@ -100,22 +100,6 @@ def login():
         else:
            message = "Wrong Username or Password"
            return render_template('login.html',message=message)
-        
-#Profile Functionality   
-@app.route('/profile',methods=['POST','GET'])
-def profile():
-        if 'user_id' in session:
-            connection = db_connection()
-            connection_cursor = connection.cursor()
-            user_id = session['user_id']
-            query=f"SELECT * FROM Details WHERE personid = {user_id}"
-            connection_cursor.execute(query)
-            users=connection_cursor.fetchone()
-            print(users)
-            return render_template("profile.html",users=users)
-        else:
-            message="You must be logged in"
-            return render_template('login.html',message=message)
     
 #Registration Functionality
 @app.route('/register', methods =['GET', 'POST'])
@@ -162,7 +146,6 @@ def register():
                 connection.commit()
                 connection_cursor.close()
                 connection.close()
-
                 msg1 = Message(subject='OTP',sender ='liarchary007@gmail.com',recipients = [email] )
                 msg1.body = str(otp)
                 mail.send(msg1)
@@ -172,12 +155,29 @@ def register():
             message = "Please another mail"
         return render_template('login.html', message=message)
 
-
+#Home Page
 @app.route('/home')
 def home():
     if 'user_id' in session:
      return render_template("home.html")
-
+    
+#Profile Functionality   
+@app.route('/profile',methods=['POST','GET'])
+def profile():
+        if 'user_id' in session:
+            connection = db_connection()
+            connection_cursor = connection.cursor()
+            user_id = session['user_id']
+            query=f"SELECT * FROM Details WHERE personid = '{user_id}';"
+            connection_cursor.execute(query)
+            users=connection_cursor.fetchone()
+            print(users)
+            return render_template("profile.html",users=users)
+        else:
+            message="You must be logged in"
+            return render_template('login.html',message=message)
+    
+#Gallery Functionality
 @app.route('/gallery',methods=["POST","GET"])
 def gallery():
     if request.method == 'GET':
@@ -185,10 +185,11 @@ def gallery():
             user_id=session.get('user_id')
             connection = db_connection()
             connection_cursor = connection.cursor()
-            query = f" SELECT  user_id,filename from user_uploads  WHERE user_id='{user_id}';"
-            print(query)
+            query = f" SELECT  user_id,filename ,id from images  WHERE user_id='{user_id}';"
+            print(f"Gallery get---->{query}")
             connection_cursor.execute(query)
             images = connection_cursor.fetchall()
+            print(type(images))
             print(f"These are the images---->{images}")
             connection_cursor.close()
             connection.close()
@@ -215,34 +216,92 @@ def gallery():
                     print("2342324223432")
                     connection = db_connection()
                     connection_cursor = connection.cursor()
-                    query = f"INSERT INTO user_uploads (user_id,filename) VALUE ('{user_id}', '{filename}');"
-                    print(query)
+                    query = f"INSERT INTO images (user_id,filename) VALUE ('{user_id}', '{filename}');"
+                    print(f"Gallery_POST--->{query}")
                     connection_cursor.execute(query)
                     connection.commit()
                     connection_cursor.close()
                     connection.close()
             
-            return render_template('gallery.html')
+            return redirect(url_for('gallery'))
 
-   
+#Upload Functionality
 @app.route('/uploads/<user_id>/<filename>',methods=["GET"])
 def uploads(user_id, filename):
     session_user_id=session.get('user_id')
+    print(f"it's uploads img ---->{session_user_id}")
     print(type(session_user_id))
     if session_user_id is not None:
-         print(type(user_id ))
+         print(f"it is from UPLOAD Fun-->{user_id}" )
          if str(session_user_id)== str(user_id):
            return send_file(f"uploads/{user_id}/{filename}")
          else:
            return "Forbidden", 403
     return "Forbidden", 403
-        
-    
-    
-@app.route('/editprofile')
-def editprofile():
+
+#Delete functionality
+@app.route('/delete/<int:user_id>/<filename>', methods=['POST'])
+def delete_image(user_id, filename):
+    session_user_id = session.get('user_id')
+    if session_user_id is not None and str(session_user_id) == str(user_id):
+        path_to_delete = os.path.join('uploads', str(user_id), filename)
+        print(f"path_to_delete---->{path_to_delete}")
+        if os.path.exists(path_to_delete):
+            os.remove(path_to_delete)
+            print(f"After delete--->{path_to_delete}")
+            connection = db_connection()
+            connection_cursor = connection.cursor()
+            query = f"DELETE FROM images WHERE user_id='{user_id}' AND filename='{filename}';"
+            print(query)
+            connection_cursor.execute(query)
+            connection.commit()
+            connection_cursor.close()
+            connection.close()
+        return redirect(url_for('gallery'))
+    else:
+        return "Forbidden", 403
+
+
+#Edit Profile Page
+@app.route('/profilenew',methods=['POST','GET'])
+def profilenew():
     if 'user_id' in session:
-     return render_template("editprofile.html")
+            user_id=session.get('user_id')
+            if request.method=='GET':
+                connection = db_connection()
+                connection_cursor = connection.cursor()
+                user_id = session['user_id']
+                query=f"SELECT * FROM Details WHERE personid = '{user_id}';"
+                print(f"Profile get query--->{query}")
+                connection_cursor.execute(query)
+                users=connection_cursor.fetchone()
+                print(users)
+                return render_template("profilenew.html",users=users)
+            
+            elif request.method=="POST":
+                new_lastname=request.form['lastname']
+                new_firstname=request.form['firstname']
+                new_mobile=request.form['mobile']
+                new_city=request.form['city']
+                new_email=request.form['email']
+                # new_email=request.form['user_id']
+                print(f"lastname in Profile_POST--->{new_lastname}")
+                print(f"lastname in Profile_POST--->{new_firstname}")
+                # print(f"lastname in Profile_POST--->{user_id}")
+                print(f"email in Profile_POST--->{new_email}")
+                connection = db_connection()
+                connection_cursor = connection.cursor()
+                query=f"UPDATE Details SET lastname='{new_lastname}', firstname='{new_firstname}', mobile='{new_mobile}',city='{new_city}',email='{new_email}' WHERE personid= '{user_id}';"
+                connection_cursor.execute(query)
+                print(f"Update Query---->{query}")
+                connection.commit()
+                connection_cursor.close()
+                connection.close()
+                return redirect(url_for('profile',user_id=user_id))
+
+    else:
+            message="You must be logged in"
+            return render_template('login.html',message=message)
     
 
 

@@ -223,7 +223,7 @@ def gallery():
                     connection_cursor.close()
                     connection.close()
             
-            return render_template('gallery.html')
+            return redirect(url_for('gallery'))
 
 #Upload Functionality
 @app.route('/uploads/<user_id>/<filename>',methods=["GET"])
@@ -284,10 +284,11 @@ def profilenew():
                 new_mobile=request.form['mobile']
                 new_city=request.form['city']
                 new_email=request.form['email']
-                new_email=request.form['user_id']
+                # new_email=request.form['user_id']
                 print(f"lastname in Profile_POST--->{new_lastname}")
                 print(f"lastname in Profile_POST--->{new_firstname}")
-                print(f"lastname in Profile_POST--->{user_id}")
+                # print(f"lastname in Profile_POST--->{user_id}")
+                print(f"email in Profile_POST--->{new_email}")
                 connection = db_connection()
                 connection_cursor = connection.cursor()
                 query=f"UPDATE Details SET lastname='{new_lastname}', firstname='{new_firstname}', mobile='{new_mobile}',city='{new_city}',email='{new_email}' WHERE personid= '{user_id}';"

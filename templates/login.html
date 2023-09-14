@@ -1,19 +1,27 @@
 <html>
-   <head>
-   <body align="center">
-      <h3>Login Here</h3>
-      <br>
-      <form action = "/" method = "POST" >
-      <div>
-         <p>Email_ID <input type = "email" name="email1" placeholder="Your's Email" required/></p>
-         <p>Password <input type = "password" name="password" placeholder="Password " required/></p>
-         <div>
-        <p style="text-align:center;">register: <a class="center" href="{{url_for('register')}}">Sing Up here</a></p>
-         <p><input type = "submit" value = "login" /></p>
-          {% if message %}
-            {{message}}
-            {% endif%}
-      </form>
-   </head>
-   </body>
+   {% include 'head.html' %}
+<body>
+<div class="wrapper">
+   <div class="logo">
+       <img src="static\images\login.png" alt="">
+   </div><br>
+   <form action = "/" method = "POST" >
+       <div class="form-field d-flex align-items-center">
+         <input type = "email" name="email1" placeholder="Your's Email" required/></p>
+       </div>
+       <div class="form-field d-flex align-items-center">
+         <input type = "password" name="password" placeholder="Password " required/></p>
+       </div>
+       <button value = "login" class="btn mt-3">Login</button>
+       <div>
+       {% if message %}
+       {{message}}
+       {% endif%}
+      </div>
+   </form>
+   <div class="text-center fs-6">
+       <a href="{{url_for('register')}}">Sign up</a>
+   </div>
+</div>
+</body>
 </html>
