@@ -16,7 +16,6 @@
          <div class="thumbnail">
             <a href="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" target="_blank">
                <img src="/uploads/{{ image['user_id'] }}/{{ image['filename'] }}" alt="images" style="width: auto; height: 195px;">
-               <div class="caption">
                   <form method="POST" action="/delete/{{image['user_id']}}/{{image['filename']}}">
                      <button type="submit" class="btn btn-danger">Delete</button>
                   </form>
@@ -26,5 +25,24 @@
       </div>
       {% endfor %}
    </div>
+   <div class="container">
+   <div class="row">
+    {% for video in videos %}
+    <div class="col-md-4">
+       <div class="thumbnail">
+        <video width="200" height="200" controls>
+         <source src="/uploads/{{video['user_id']}}/{{video['filename']}}"  >
+          <a href="/uploads/{{video['user_id']}}/{{video['filename']}}" target="_blank"> </a>
+         </video>
+         <form method="POST" action="/delete/{{video['user_id']}}/{{video['filename']}}">
+            <button type="submit" class="btn btn-danger">Delete</button>
+         </form>
+         </div>
+         
+       </div>
+    </div>
+    {% endfor %}
+ </div>
+</div>
 </body>
 </html>

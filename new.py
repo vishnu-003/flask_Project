@@ -51,7 +51,7 @@ def validate_otp(email,otp):
         
 
 #Handiling Extensions
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','mp4'}
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -185,15 +185,22 @@ def gallery():
             user_id=session.get('user_id')
             connection = db_connection()
             connection_cursor = connection.cursor()
-            query = f" SELECT  user_id,filename ,id from images  WHERE user_id='{user_id}';"
+            query = f" SELECT  user_id,filename ,id from images  WHERE user_id='{user_id}' and filename like'%jpg';"
             print(f"Gallery get---->{query}")
             connection_cursor.execute(query)
             images = connection_cursor.fetchall()
             print(type(images))
             print(f"These are the images---->{images}")
+            query1 = f" SELECT  user_id,filename ,id from images  WHERE user_id='{user_id}' and filename like'%mp4';"
+            print(f"Gallery get---->{query1}")
+            connection_cursor.execute(query1)
+            videos = connection_cursor.fetchall()
+            print(type(videos))
+            print(f"These are the videos---->{videos}")
             connection_cursor.close()
             connection.close()
-        return render_template('gallery.html',images=images)
+            
+        return render_template('gallery.html',images=images,videos=videos)
         
     
     if request.method == 'POST':
@@ -212,7 +219,7 @@ def gallery():
                     print(f"actual filename------>{filename}")
                     os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
                     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-                    file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", file.filename))
+                    file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", filename))
                     print("2342324223432")
                     connection = db_connection()
                     connection_cursor = connection.cursor()
@@ -222,6 +229,7 @@ def gallery():
                     connection.commit()
                     connection_cursor.close()
                     connection.close()
+                    
             
             return redirect(url_for('gallery'))
 
@@ -240,7 +248,7 @@ def uploads(user_id, filename):
     return "Forbidden", 403
 
 #Delete functionality
-@app.route('/delete/<int:user_id>/<filename>', methods=['POST'])
+@app.route('/delete/<int:user_id/<filename>', methods=['POST'])
 def delete_image(user_id, filename):
     session_user_id = session.get('user_id')
     if session_user_id is not None and str(session_user_id) == str(user_id):
@@ -303,6 +311,15 @@ def profilenew():
             message="You must be logged in"
             return render_template('login.html',message=message)
     
+#Download Functionality   
+@app.route('/download')
+def download():
+   
+    return render_template('download.html')
+
+
+
+
 
 
 #Logout Functionality   
