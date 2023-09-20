@@ -12,6 +12,9 @@
         <input type="text" name="url"  required>
         <br>
         <input type="submit" value="Download">
+        {% if download %}
+       {{download}}
+       {% endif%}
     </form>
 </body>
 </html>

@@ -2,6 +2,9 @@ from flask import Flask, render_template, request,redirect, session,abort,make_r
 from flask_mail import Mail, Message
 import pymysql
 import os
+import re
+from pytube import YouTube
+from pathlib import Path
 from flask import url_for
 from random import *
 from dotenv import load_dotenv 
@@ -232,7 +235,6 @@ def gallery():
                     
             
             return redirect(url_for('gallery'))
-
 #Upload Functionality
 @app.route('/uploads/<user_id>/<filename>',methods=["GET"])
 def uploads(user_id, filename):
@@ -248,7 +250,7 @@ def uploads(user_id, filename):
     return "Forbidden", 403
 
 #Delete functionality
-@app.route('/delete/<int:user_id/<filename>', methods=['POST'])
+@app.route('/delete/<int:user_id>/<filename>', methods=['POST'])
 def delete_image(user_id, filename):
     session_user_id = session.get('user_id')
     if session_user_id is not None and str(session_user_id) == str(user_id):
@@ -310,14 +312,53 @@ def profilenew():
     else:
             message="You must be logged in"
             return render_template('login.html',message=message)
-    
+
+
 #Download Functionality   
 @app.route('/download')
 def download():
    
     return render_template('download.html')
 
-
+@app.route("/ut", methods=["GET","POST"])
+def ut():      
+        mesage = ''
+        errorType = 0
+        if request.method == 'POST' and 'video_url' in request.form:
+            youtubeUrl = request.form["video_url"]
+            print(youtubeUrl)
+            if(youtubeUrl):
+                validateVideoUrl = (r'(https?://)?(www\.)?''(youtube|youtu|youtube-nocookie)\.(com|be)/''(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})')
+                validVideoUrl = re.match(validateVideoUrl, youtubeUrl)
+                if validVideoUrl:
+                    url = YouTube(youtubeUrl)
+                    video = url.streams.get_highest_resolution()
+                    user_id = session['user_id']
+                    filename = f"{session['user_id']}_{url.title}.mp4"
+                    path = os.getcwd()
+                    UPLOAD_FOLDER = os.path.join(path, 'uploads')
+                    os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
+                    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+                    downloadFolder = str(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}"))
+                    video.download(downloadFolder, filename=filename)
+                    connection=db_connection()
+                    connection_cursor=connection.cursor()
+                    query = f"INSERT INTO images (user_id, filename) VALUES ('{user_id}', '{filename}');"
+                    print(query)
+                    connection_cursor.execute(query)
+                    connection.commit()
+                    connection_cursor.close()
+                    connection.close()
+                    mesage = 'Video Downloaded and Added to Your Profile Successfully!'
+                    errorType = 1
+                    return redirect(url_for('gallery'))
+                else:
+                    mesage = 'Enter Valid YouTube Video URL!'
+                    errorType = 0        
+            else:
+                mesage='enter Youtube video url'
+                errorType=0
+        return render_template('ut.html', mesage = mesage, errorType = errorType)
 
 
 

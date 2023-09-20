@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request,jsonify,redirect
 import os
 import requests
 import bs4 as bs
 import urllib.request
+from instascrape import Reel 
+import time
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'downloads'  # Folder where downloaded files will be stored
@@ -19,13 +21,8 @@ def download():
     print(type(url))
 
     print("dsfdsfsdfdsdsaasfsdfsdfds")
-    source = urllib.request.urlopen().read()
-    print(f"inside---->{url}")
-    soup = bs.BeautifulSoup(source,'lxml')
-    for url in soup.find_all('a'):
-        print(url.get('href'))
-        print(soup.get_text())
-        headers = {
+
+    headers = {
         'authority': 'fastdl.app',
         'accept': '*/*',
         'accept-language': 'en-US,en;q=0.9',
@@ -43,14 +40,21 @@ def download():
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
         'x-requested-with': 'XMLHttpRequest',
     }
-        data = {
+    data = {
         'url': f"{url}",
         'lang_code': 'en',
         'token': '',
     }
-        response = requests.post('https://fastdl.app/c/', headers=headers, data=data)
-        print(response.text)
-        return "true"
+    response = requests.post('https://fastdl.app/c/', headers=headers, data=data)
+    anc=response.text
+    # source = urllib.request.urlopen('https://www.instagram.com/reel/CxGEYRBJtFj/?igshid=MzRlODBiNWFlZA==').read()
+    print(f"inside---->{url}")
+    soup = bs.BeautifulSoup(anc,'lxml')
+    for url in soup.find_all('a'):
+        href_link=url.get('href')
+        print(soup.get_text())
+        # download= "<a href={href_link} download>Download Video</ahref_link"
+    return (f"<a href={href_link} download>Download Video</ahref_link")
 
 
 if __name__ == '__main__':
