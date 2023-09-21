@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request,redirect, session,abort,make_response,jsonify, send_file, abort
+from flask import Flask, render_template, request,redirect, session,abort,make_response,jsonify, send_file, abort,flash
 from flask_mail import Mail, Message
 import pymysql
+import requests
+import bs4 as bs
 import os
 import re
 from pytube import YouTube
@@ -157,6 +159,55 @@ def register():
         else:
             message = "Please another mail"
         return render_template('login.html', message=message)
+    
+#Forgot Password
+@app.route('/forgototp', methods=['GET', 'POST'])
+def forgototp():
+    if request.method == 'POST':
+        email = request.form['email']
+        otp = str(randint(100000, 999999))
+        msg = Message(subject='Forgot Password OTP', sender='liarchary007@gmail.com', recipients=[email])
+        msg.body = f'Your OTP for resetting the password is: {otp}'
+        mail.send(msg)
+        session['reset_password_otp'] = otp
+        print(f"otp in forgot--->{otp}")
+        session['reset_password_email'] = email
+        return redirect(url_for('verifyotp'))
+    return render_template('forgototp.html')
+
+#verifying OTP and setting a new password
+@app.route('/verifyotp', methods=['GET', 'POST'])
+def verifyotp():
+    if request.method == 'POST':
+        entered_otp = request.form['otp']
+        Name = request.form['new_password']
+        Name1 = request.form['confirm_password']
+        print(Name)
+        print(Name1)
+        print(f"verifyotp---->{entered_otp}")
+        new_password = request.form['new_password']
+        if 'reset_password_otp' in session and 'reset_password_email' in session:
+            if entered_otp == session['reset_password_otp']:
+                if Name == Name1:
+                    email = session['reset_password_email']
+                    connection = db_connection()
+                    connection_cursor = connection.cursor()
+                    query = f"UPDATE Details SET passwrd = '{new_password}' WHERE email = '{email}';"
+                    connection_cursor.execute(query)
+                    connection.commit()
+                    connection_cursor.close()
+                    connection.close()
+                    return redirect(url_for('login'))
+                else:
+                    msg='Password does not matched. Please try again.'
+                    return render_template('verifyotp.html',msg=msg)
+            else:
+                msg="Invalid OTP"
+                return render_template('verifyotp.html',msg=msg)
+        else:
+            return render_template('verifyotp.html')
+ 
+    return render_template('verifyotp.html')
 
 #Home Page
 @app.route('/home')
@@ -314,11 +365,7 @@ def profilenew():
             return render_template('login.html',message=message)
 
 
-#Download Functionality   
-@app.route('/download')
-def download():
-   
-    return render_template('download.html')
+
 
 @app.route("/ut", methods=["GET","POST"])
 def ut():      
@@ -361,7 +408,53 @@ def ut():
         return render_template('ut.html', mesage = mesage, errorType = errorType)
 
 
+@app.route('/download', methods=['POST'])
+def download():
+    url = request.form['url']
+    print(url)
+    print(type(url))
 
+    print("dsfdsfsdfdsdsaasfsdfsdfds")
+
+    headers = {
+        'authority': 'fastdl.app',
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9',
+        'cache-control': 'no-cache',
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'origin': 'https://fastdl.app',
+        'pragma': 'no-cache',
+        'referer': 'https://fastdl.app/',
+        'sec-ch-ua': '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+        'x-requested-with': 'XMLHttpRequest',
+    }
+    data = {
+        'url': f"{url}",
+        'lang_code': 'en',
+        'token': '',
+    }
+    response = requests.post('https://fastdl.app/c/', headers=headers, data=data)
+    anc=response.text
+    print(anc)
+    # source = urllib.request.urlopen('https://www.instagram.com/reel/CxGEYRBJtFj/?igshid=MzRlODBiNWFlZA==').read()
+    print(f"inside---->{url}")
+    soup = bs.BeautifulSoup(anc,'lxml')
+    for url in soup.find_all('a'):
+        href_link=url.get('href')
+        print(soup.get_text())
+        # download= "<a href={href_link} download>Download Video</ahref_link"
+    return (f"<a href={href_link} download>Download Video</ahref_link")
+
+@app.route('/instad')
+def instad():
+
+    return render_template('instad.html')
 
 #Logout Functionality   
 @app.route('/logout')

@@ -7,7 +7,6 @@ from instascrape import Reel
 import time
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'downloads'  # Folder where downloaded files will be stored
 
 @app.route('/')
 def index():
