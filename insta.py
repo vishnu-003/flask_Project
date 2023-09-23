@@ -1,59 +1,107 @@
-from flask import Flask, render_template, request,jsonify,redirect
+from flask import Flask, request, render_template, send_file,redirect
 import os
-import requests
-import bs4 as bs
-import urllib.request
-from instascrape import Reel 
-import time
+import pyttsx3
+from flask import url_for
+ 
 
 app = Flask(__name__)
 
-@app.route('/')
-def index():
+# @app.route('/', methods=['GET'])
+# def audio():
+#     return render_template('audio.html')
+@app.route('/audio',methods=["POST","GET"])
+def audio():
+    if request.method == 'GET':
+        if 'user_id'in session:
+            user_id=session.get('user_id')
+            connection = db_connection()
+            connection_cursor = connection.cursor()
+            query = f" SELECT  user_id,filename ,id from images  WHERE user_id='{user_id}' and filename like'%mp3';"
+            print(f"Gallery get---->{query}")
+            connection_cursor.execute(query)
+            audios = connection_cursor.fetchall()
+            print(f"These are the audios---->{audios}")
+            connection_cursor.close()
+            connection.close()
+        return render_template('audio.html',audios=audios)
+    
+    if request.method == 'POST':
+        if 'user_id' in session and 'text_file' in request.files:
+            text_file = request.files['text_file']
+            print(text_file)
+            user_id=session['user_id']
+            print(user_id)
+            path = os.getcwd()
+            print(f"path----->{path}")
+            UPLOAD_FOLDER = os.path.join(path, 'uploads')
+            if text_file and allowed_file(file.filename):
+                filename= text_file.filename
+                engine = pyttsx3.init()
+                # os.makedirs(os.path.dirname(f"uploads"), exist_ok=True)
+                app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+                print(f"-------------->{UPLOAD_FOLDER}")
+                text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}",filename))
+                # text_file.save(filename)
+                print(type(filename))
+                base=os.path.basename(f"{UPLOAD_FOLDER}/{filename}")
+                print(base)
+                b=os.path.splitext(base)
+                print(f"base1--->{b}")
+                c=os.path.splitext(base)[0]
+                print(f"base2--->{c}")
+                engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
+                engine.save_to_file(open(f"{UPLOAD_FOLDER}/{filename}", 'r').read(), os.path.join(f"{app.config['UPLOAD_FOLDER']}",f"{c}.mp3"))
+                engine.say(open(f"{UPLOAD_FOLDER}/{filename}", 'r').read())   
+                engine.runAndWait()
+                engine.stop()
+                connection = db_connection()
+                connection_cursor = connection.cursor()
+                query = f"INSERT INTO images (user_id,filename) VALUE ('{user_id}', '{filename}');"
+                print(f"Gallery_POST--->{query}")
+                connection_cursor.execute(query)
+                connection.commit()
+                connection_cursor.close()
+                connection.close()
+                return redirect(url_for('audio'))
+                # return send_file('output.mp3', as_attachment=True)
+            return "No file uploaded."
 
-    return render_template('index.html')
-
-@app.route('/download', methods=['POST'])
-def download():
-    url = request.form['url']
-    print(url)
-    print(type(url))
-
-    print("dsfdsfsdfdsdsaasfsdfsdfds")
-
-    headers = {
-        'authority': 'fastdl.app',
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.9',
-        'cache-control': 'no-cache',
-        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'origin': 'https://fastdl.app',
-        'pragma': 'no-cache',
-        'referer': 'https://fastdl.app/',
-        'sec-ch-ua': '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-        'x-requested-with': 'XMLHttpRequest',
-    }
-    data = {
-        'url': f"{url}",
-        'lang_code': 'en',
-        'token': '',
-    }
-    response = requests.post('https://fastdl.app/c/', headers=headers, data=data)
-    anc=response.text
-    # source = urllib.request.urlopen('https://www.instagram.com/reel/CxGEYRBJtFj/?igshid=MzRlODBiNWFlZA==').read()
-    print(f"inside---->{url}")
-    soup = bs.BeautifulSoup(anc,'lxml')
-    for url in soup.find_all('a'):
-        href_link=url.get('href')
-        print(soup.get_text())
-        # download= "<a href={href_link} download>Download Video</ahref_link"
-    return (f"<a href={href_link} download>Download Video</ahref_link")
+# @app.route('/convert', methods=['POST'])
+# def convert():
+#     text_file = request.files['text_file']
+#     path = os.getcwd()
+#     UPLOAD_FOLDER = os.path.join(path, 'uploads')
+#     if text_file and allowed_file(file.filename):
+#         filename= text_file.filename
+#         engine = pyttsx3.init()
+#         # os.makedirs(os.path.dirname(f"uploads"), exist_ok=True)
+#         app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+#         print(f"-------------->{UPLOAD_FOLDER}")
+#         text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}",filename))
+#         # text_file.save(filename)
+#         print(type(filename))
+#         base=os.path.basename(f"{UPLOAD_FOLDER}/{filename}")
+#         print(base)
+#         b=os.path.splitext(base)
+#         print(f"base1--->{b}")
+#         c=os.path.splitext(base)[0]
+#         print(f"base2--->{c}")
+#         engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
+#         engine.save_to_file(open(f"{UPLOAD_FOLDER}/{filename}", 'r').read(), os.path.join(f"{app.config['UPLOAD_FOLDER']}",f"{c}.mp3"))
+#         engine.say(open(f"{UPLOAD_FOLDER}/{filename}", 'r').read())   
+#         engine.runAndWait()
+#         engine.stop()
+#         connection = db_connection()
+#         connection_cursor = connection.cursor()
+#         query = f"INSERT INTO images (user_id,filename) VALUE ('{user_id}', '{filename}');"
+#         print(f"Gallery_POST--->{query}")
+#         connection_cursor.execute(query)
+#         connection.commit()
+#         connection_cursor.close()
+#         connection.close()
+#         return redirect(url_for('audio'))
+#         # return send_file('output.mp3', as_attachment=True)
+#     return "No file uploaded."
 
 
 if __name__ == '__main__':
@@ -61,7 +109,4 @@ if __name__ == '__main__':
 
 
 
-            
-
-  
 
