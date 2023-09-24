@@ -191,7 +191,6 @@ def verifyotp():
             if entered_otp == session['reset_password_otp']:
                 if Name == Name1:
                     email = session['reset_password_email']
-                    
                     connection = db_connection()
                     connection_cursor = connection.cursor()
                     query1=f"SELECT passwrd from Details where email = '{email}';"
@@ -302,60 +301,108 @@ def gallery():
             return redirect(url_for('gallery'))
         
 
-@app.route('/audio',methods=["POST","GET"])
+# @app.route('/audio',methods=["POST","GET"])
+# def audio():
+#     if request.method == 'GET':
+#         if 'user_id'in session:
+#             user_id=session.get('user_id')
+#             connection = db_connection()
+#             connection_cursor = connection.cursor()
+#             query = f" SELECT  user_id,filename ,id from audios  WHERE user_id='{user_id}';"
+#             print(f"Audio_get---->{query}")
+#             connection_cursor.execute(query)
+#             audios = connection_cursor.fetchall()
+#             print(f"These are the audios---->{audios}")
+#             connection_cursor.close()
+#             connection.close()
+#         return render_template('audio.html',audios=audios)
+    
+#     if request.method == 'POST':
+#         if 'user_id' in session and 'text_file' in request.files:
+#             text_file = request.files['text_file']
+#             print(text_file)
+#             user_id=session['user_id']
+#             print(user_id)
+#             path = os.getcwd()
+#             print(f"path----->{path}")
+#             UPLOAD_FOLDER = os.path.join(path, 'uploads')
+#             print(f"upload_folder--->{UPLOAD_FOLDER}")
+#             if text_file and allowed_file(text_file.filename):
+#                 filename= text_file.filename
+#                 print(filename)
+#                 engine = pyttsx3.init()
+#                 os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
+#                 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+#                 text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}",filename))
+#                 engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
+#                 base=os.path.basename(f"{UPLOAD_FOLDER}/{filename}")
+#                 print(base)
+#                 b=os.path.splitext(base)
+#                 c=os.path.splitext(base)[0]
+#                 engine.save_to_file(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read(), os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}/{c}.mp3"))
+#                 engine.say(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read())   
+#                 engine.runAndWait()
+#                 engine.stop()
+#                 connection = db_connection()
+#                 connection_cursor = connection.cursor()
+#                 query = f"INSERT INTO audios (user_id,filename) VALUE ('{user_id}', '{c}.mp3');"
+#                 print(f"Audio_POST--->{query}")
+#                 connection_cursor.execute(query)
+#                 connection.commit()
+#                 connection_cursor.close()
+#                 connection.close()
+#             return redirect(url_for('audio'))
+#                 # return send_file('output.mp3', as_attachment=True)
+#         return "No file uploaded."
+
+
+# Define a route for uploading audio files
+
+@app.route('/audio', methods=["POST", "GET"])
 def audio():
     if request.method == 'GET':
-        if 'user_id'in session:
-            user_id=session.get('user_id')
+        if 'user_id' in session:
+            user_id = session.get('user_id')
             connection = db_connection()
             connection_cursor = connection.cursor()
-            query = f" SELECT  user_id,filename ,id from audios  WHERE user_id='{user_id}';"
+            query = f"SELECT user_id, filename, id FROM audios WHERE user_id='{user_id}';"
             print(f"Audio_get---->{query}")
             connection_cursor.execute(query)
             audios = connection_cursor.fetchall()
             print(f"These are the audios---->{audios}")
             connection_cursor.close()
             connection.close()
-        return render_template('audio.html',audios=audios)
-    
+            return render_template('audio.html', audios=audios)
+        
     if request.method == 'POST':
-        if 'user_id' in session and 'text_file' in request.files:
-            text_file = request.files['text_file']
-            print(text_file)
-            user_id=session['user_id']
-            print(user_id)
+        if 'user_id' in session:
+            user_id = session['user_id']
             path = os.getcwd()
-            print(f"path----->{path}")
             UPLOAD_FOLDER = os.path.join(path, 'uploads')
-            print(f"upload_folder--->{UPLOAD_FOLDER}")
-            if text_file and allowed_file(text_file.filename):
-                filename= text_file.filename
-                print(filename)
-                engine = pyttsx3.init()
-                os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
-                app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-                text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}",filename))
-                engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
-                base=os.path.basename(f"{UPLOAD_FOLDER}/{filename}")
-                print(base)
-                b=os.path.splitext(base)
-                c=os.path.splitext(base)[0]
-                engine.save_to_file(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read(), os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}/{c}.mp3"))
-                engine.say(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read())   
-                engine.runAndWait()
-                engine.stop()
-                connection = db_connection()
-                connection_cursor = connection.cursor()
-                query = f"INSERT INTO audios (user_id,filename) VALUE ('{user_id}', '{c}.mp3');"
-                print(f"Audio_POST--->{query}")
-                connection_cursor.execute(query)
-                connection.commit()
-                connection_cursor.close()
-                connection.close()
+            app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+            for text_file in request.files.getlist('text_file'):
+                if text_file and allowed_file(text_file.filename):
+                    filename = text_file.filename
+                    base = os.path.basename(filename)
+                    c = os.path.splitext(base)[0]
+                    os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
+                    text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}",filename))
+                    engine = pyttsx3.init()
+                    engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
+                    engine.save_to_file(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read(), os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}/{c}.mp3"))
+                    engine.say(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read())  
+                    engine.runAndWait()
+                    engine.stop()
+                    connection = db_connection()
+                    connection_cursor = connection.cursor()
+                    query = f"INSERT INTO audios (user_id, filename) VALUES ('{user_id}', '{c}.mp3');"
+                    print(f"Audio_POST--->{query}")
+                    connection_cursor.execute(query)
+                    connection.commit()
+                    connection_cursor.close()
+                    connection.close()
             return redirect(url_for('audio'))
-                # return send_file('output.mp3', as_attachment=True)
-        return "No file uploaded."
-
+    return "No file uploaded."
 
 #Upload Functionality
 @app.route('/uploads/<user_id>/<filename>',methods=["GET"])
@@ -400,9 +447,14 @@ def delete_audio(user_id, filename):
     session_user_id = session.get('user_id')
     if session_user_id is not None and str(session_user_id) == str(user_id):
         path_to_delete = os.path.join('uploads', str(user_id), filename)
+        base=os.path.basename(f"{path_to_delete}")
+        b=os.path.splitext(base)
+        c=os.path.splitext(base)[0]
+        path_to_delete1 = os.path.join('uploads', str(user_id), f"{c}.txt")
         print(f"path_to_delete---->{path_to_delete}")
         if os.path.exists(path_to_delete):
             os.remove(path_to_delete)
+            os.remove(path_to_delete1)
             print(f"After delete--->{path_to_delete}")
             connection = db_connection()
             connection_cursor = connection.cursor()
@@ -412,6 +464,7 @@ def delete_audio(user_id, filename):
             connection.commit()
             connection_cursor.close()
             connection.close()
+
         return redirect(url_for('audio'))
     else:
         return "Forbidden", 403
