@@ -88,10 +88,12 @@ def db_connection():
 
 #RabbitMQ Connections
 def rabbit_conn():
-		url = os.environ.get('CLOUDAMQP_URL', 'RQ_AMQPS')
-		params = pika.URLParameters(url)
-		connectionr = pika.BlockingConnection(params)
-		return connectionr
+    d = os.environ.get("RQ_AMQPS")
+    url = os.environ.get('CLOUDAMQP_URL', d)
+    print(url)
+    params = pika.URLParameters(url)
+    connectionr = pika.BlockingConnection(params)
+    return connectionr
 
 #Login functionality 
 @app.route('/', methods =['GET', 'POST'])
@@ -341,7 +343,7 @@ def audio():
                 if text_file and allowed_file(text_file.filename):
                     filename = text_file.filename
                     print(f"filename----->{filename}")
-
+                    
                     #db_connections & RabbitMQ_connections
                     connection = db_connection()
                     connection_cursor = connection.cursor()
@@ -367,12 +369,12 @@ def audio():
                     rq_channel.basic_publish(body=str(payload),exchange='',routing_key='speech_queue')
 
             msg="Your file has been converted into speech and downloaded" 
-            errorType=1
+           
             connection.close()
             connection_cursor.close()
             rq_channel.close()
             rq_con.close()        
-            return render_template('audio.html',msg=msg,errorType=errorType)
+            return render_template('audio.html',msg=msg)
     return "No file uploaded."
 
 
