@@ -36,28 +36,25 @@ connection_cursor = connection.cursor()
 def download_txt(ch, method, properties, body):
     print(body.decode().replace("'", "\""))
     payload = json.loads(body.decode().replace("'", "\""))
-    print(payload)
     job_id = payload["job_id"]
     filename = payload["job_file"]
-    print(f"filename----{filename}")
     user_id = payload["user_id"]
+    print(f"filename----{filename}")
     print(job_id, filename, user_id)
     path = os.getcwd()
     UPLOAD_FOLDER = os.path.join(path, 'uploads')
     print(f"--------->{UPLOAD_FOLDER}")
     base = os.path.basename(filename)
     c = os.path.splitext(base)[0]
-    
+    print
+
     if not os.path.exists(os.path.join(UPLOAD_FOLDER, str(user_id))):
         os.makedirs(os.path.join(UPLOAD_FOLDER, str(user_id)))
-    file_path = os.path.join(UPLOAD_FOLDER, str(user_id), os.path.basename(filename))
-    with open(file_path, 'wb') as file:
-        file.write(body)
         
     engine = pyttsx3.init()
     engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
     engine.save_to_file(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read(), os.path.join(f"{UPLOAD_FOLDER}/{user_id}/{c}.mp3"))
-    engine.say(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read())  
+    engine.say(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r'))  
     engine.runAndWait()
     engine.stop()
     # Insert files into the audio table

@@ -32,6 +32,7 @@ app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['RQ_AMQPS'] = os.environ.get('RQ_AMQPS')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
@@ -87,10 +88,12 @@ def db_connection():
 
 #RabbitMQ Connections
 def rabbit_conn():
-		url = os.environ.get('CLOUDAMQP_URL', 'amqps://vuylxkvk:f6dDFwey32bzBFOYbj0tNteDCtrdhDUk@puffin.rmq2.cloudamqp.com/vuylxkvk')
-		params = pika.URLParameters(url)
-		connectionr = pika.BlockingConnection(params)
-		return connectionr
+    d = os.environ.get("RQ_AMQPS")
+    url = os.environ.get('CLOUDAMQP_URL', d)
+    print(url)
+    params = pika.URLParameters(url)
+    connectionr = pika.BlockingConnection(params)
+    return connectionr
 
 #Login functionality 
 @app.route('/', methods =['GET', 'POST'])
@@ -333,26 +336,12 @@ def audio():
     if request.method == 'POST':
         if 'user_id' in session:
             user_id = session['user_id']
-            path = os.getcwd()
-            UPLOAD_FOLDER = os.path.join(path, 'uploads')
-            app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
             for text_file in request.files.getlist('text_file'):
                 if text_file and allowed_file(text_file.filename):
                     filename = text_file.filename
-                    base = os.path.basename(filename)
-                    c = os.path.splitext(base)[0]
-                    os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
-                    text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}",filename))
-
-                    #engine which converts text file into speech
-                    engine = pyttsx3.init()
-                    engine.setProperty('voice', 'com.apple.speech.synthesis.voice.Alex')
-                    engine.save_to_file(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read(), os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}/{c}.mp3"))
-                    engine.say(open(f"{UPLOAD_FOLDER}/{user_id}/{filename}", 'r').read())  
-                    engine.runAndWait()
-                    engine.stop()
-
-                    #db_connections 
+                    print(f"filename----->{filename}")
+                    
+                    #db_connections & RabbitMQ_connections
                     connection = db_connection()
                     connection_cursor = connection.cursor()
                     rq_con=rabbit_conn()
@@ -363,20 +352,13 @@ def audio():
                     stage="queued"
                     id=uuid.uuid1()
 
-                    #Insert files into audio table
-                    query = f"INSERT INTO audios (user_id, filename) VALUES ('{user_id}', '{c}.mp3');"
-                    print(f"Audio_POST--->{query}")
-                    connection_cursor.execute(query)
-                    connection.commit()
-
-                    #Insert into speech_file table
-                    filename1=f'{c}.mp3'
-                    query2=f"INSERT INTO speech_file(job_id,job_file,user_id,upload_time,stage) VALUES('{id}','{filename1}','{user_id}','{upload_time}','{stage}');"
+                    #Decalre & Insert into speech_file table
+                    query2=f"INSERT INTO speech_file(job_id,job_file,user_id,upload_time,stage) VALUES('{id}','{filename}','{user_id}','{upload_time}','{stage}');"
                     connection_cursor.execute(query2)
                     connection.commit()
                     payload={
                         "job_id":str(id),
-                        "job_file":filename1,
+                        "job_file":filename,
                         "user_id":user_id,
                         "upload_time":str(upload_time)
                     }
@@ -384,18 +366,13 @@ def audio():
                     rq_channel.basic_publish(body=str(payload),exchange='',routing_key='speech_queue')
 
             msg="Your file has been converted into speech and downloaded" 
-            errorType=1
+           
             connection.close()
             connection_cursor.close()
             rq_channel.close()
             rq_con.close()        
-            return render_template('audio.html',msg=msg,errorType=errorType)
+            return render_template('audio.html',msg=msg)
     return "No file uploaded."
-
-
-
-
-
 
 
 #Upload Functionality

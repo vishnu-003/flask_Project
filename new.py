@@ -122,7 +122,7 @@ def login():
            message = "Wrong Username or Password"
            return render_template('login.html',message=message)
     
-#Registration Functionality
+#Registration functionality
 @app.route('/register', methods =['GET', 'POST'])
 def register():
     if request.method == 'GET':  
@@ -243,7 +243,7 @@ def home():
     if 'user_id' in session:
      return render_template("home.html")
     
-#Profile Functionality   
+#Profile functionality   
 @app.route('/profile',methods=['POST','GET'])
 def profile():
         if 'user_id' in session:
@@ -259,7 +259,7 @@ def profile():
             message="You must be logged in"
             return render_template('login.html',message=message)
     
-#Gallery Functionality
+#Gallery functionality
 @app.route('/gallery',methods=["POST","GET"])
 def gallery():
     if request.method == 'GET':
@@ -316,7 +316,7 @@ def gallery():
             return redirect(url_for('gallery'))
 
 
-# Define a route for uploading audio files
+# Audio files functionality
 @app.route('/audio', methods=["POST", "GET"])
 def audio():
     if request.method == 'GET':
@@ -336,9 +336,6 @@ def audio():
     if request.method == 'POST':
         if 'user_id' in session:
             user_id = session['user_id']
-            path = os.getcwd()
-            UPLOAD_FOLDER = os.path.join(path, 'uploads')
-            app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
             for text_file in request.files.getlist('text_file'):
                 if text_file and allowed_file(text_file.filename):
                     filename = text_file.filename
@@ -354,6 +351,14 @@ def audio():
                     upload_time=datetime.datetime.now()
                     stage="queued"
                     id=uuid.uuid1()
+                    path=os.getcwd()
+                    print(path)
+                    UPLOAD_FOLDER=os.path.join(path,'uploads')
+                    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+                    filename = secure_filename(text_file.filename)
+                    os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
+                    pdf_path=text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", filename))
+                    print(pdf_path)
 
                     #Decalre & Insert into speech_file table
                     query2=f"INSERT INTO speech_file(job_id,job_file,user_id,upload_time,stage) VALUES('{id}','{filename}','{user_id}','{upload_time}','{stage}');"
@@ -378,7 +383,7 @@ def audio():
     return "No file uploaded."
 
 
-#Upload Functionality
+#Upload functionality
 @app.route('/uploads/<user_id>/<filename>',methods=["GET"])
 def uploads(user_id, filename):
     session_user_id=session.get('user_id')
@@ -393,7 +398,7 @@ def uploads(user_id, filename):
     return "Forbidden", 403
 
 
-#Delete functionality
+#Delete functionality for images
 @app.route('/delete/<int:user_id>/<filename>', methods=['POST'])
 def delete_image(user_id, filename):
     session_user_id = session.get('user_id')
@@ -444,10 +449,7 @@ def delete_audio(user_id, filename):
         return "Forbidden", 403
 
 
-
-
-
-#Edit Profile Page
+#Edit Profile functionality
 @app.route('/profilenew',methods=['POST','GET'])
 def profilenew():
     if 'user_id' in session:
@@ -488,9 +490,7 @@ def profilenew():
             message="You must be logged in"
             return render_template('login.html',message=message)
 
-
-
-
+#YouTube video functionality
 @app.route("/ut", methods=["GET","POST"])
 def ut():      
         mesage = ''
@@ -531,7 +531,7 @@ def ut():
                 errorType=0
         return render_template('ut.html', mesage = mesage, errorType = errorType)
 
-
+#Insta video functionality
 @app.route('/download', methods=['POST'])
 def download():
     url = request.form['url']
@@ -580,7 +580,7 @@ def instad():
 
     return render_template('instad.html')
 
-#Logout Functionality   
+#Logout functionality   
 @app.route('/logout')
 def logout():
     session.pop('user_id')
