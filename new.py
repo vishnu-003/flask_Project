@@ -357,8 +357,8 @@ def audio():
                     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
                     filename = secure_filename(text_file.filename)
                     os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
-                    pdf_path=text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", filename))
-                    print(pdf_path)
+                    audio_path=text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", filename))
+                    print(audio_path)
 
                     #Decalre & Insert into speech_file table
                     query2=f"INSERT INTO speech_file(job_id,job_file,user_id,upload_time,stage) VALUES('{id}','{filename}','{user_id}','{upload_time}','{stage}');"
