@@ -3,6 +3,15 @@ import pymysql
 import json
 import os
 import pyttsx3
+from dotenv import load_dotenv 
+
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(current_directory, '.env')
+
+# Load environment variables from the .env file
+load_dotenv(dotenv_path)
+
 
 #Connecting to database
 def db_connection():
@@ -21,9 +30,10 @@ def db_connection():
         )
     return connection
 
+b = os.environ.get("RQ_AMQPS")
 
 #RabbitMQ Connections
-url = os.environ.get('CLOUDAMQP_URL', 'amqps://vuylxkvk:f6dDFwey32bzBFOYbj0tNteDCtrdhDUk@puffin.rmq2.cloudamqp.com/vuylxkvk')
+url = os.environ.get('CLOUDAMQP_URL', b)
 params = pika.URLParameters(url)
 connection1 = pika.BlockingConnection(params)
 rq_channel = connection1.channel()
