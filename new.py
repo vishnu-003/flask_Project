@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request,redirect, session,abort,make_response,jsonify, send_file, abort,flash
 from flask_mail import Mail, Message
+import boto3
 import pymysql
 import requests
 import bs4 as bs
@@ -36,6 +37,15 @@ app.config['RQ_AMQPS'] = os.environ.get('RQ_AMQPS')
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
+app.config['AWS_ACCESS_KEY'] = os.environ.get('AWS_ACCESS_KEY')
+app.config['AWS_SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY')
+
+
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
+S3_BUCKET_NAME = 'flaskfile'
+S3_REGION = 'ap-south-1'
+
 mail = Mail(app)
 
 #Validating the otp given by user
@@ -306,6 +316,8 @@ def gallery():
                     connection = db_connection()
                     connection_cursor = connection.cursor()
                     query = f"INSERT INTO images (user_id,filename) VALUE ('{user_id}', '{filename}');"
+                    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+                    s3.upload_fileobj(file, S3_BUCKET_NAME, filename)
                     print(f"Gallery_POST--->{query}")
                     connection_cursor.execute(query)
                     connection.commit()
