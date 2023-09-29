@@ -370,6 +370,8 @@ def audio():
                     filename = secure_filename(text_file.filename)
                     os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
                     audio_path=text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", filename))
+                    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+                    s3.upload_fileobj(text_file, S3_BUCKET_NAME, filename)
                     print(audio_path)
 
                     #Decalre & Insert into speech_file table
