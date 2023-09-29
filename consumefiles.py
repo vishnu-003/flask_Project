@@ -2,6 +2,8 @@ import pika
 import pymysql
 import json
 import os
+import boto3
+from dotenv import load_dotenv 
 import pyttsx3
 from dotenv import load_dotenv 
 
@@ -30,6 +32,11 @@ def db_connection():
         )
     return connection
 
+
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
+S3_BUCKET_NAME = 'flaskfile'
+S3_REGION = 'ap-south-1'
 b = os.environ.get("RQ_AMQPS")
 
 #RabbitMQ Connections
@@ -49,6 +56,10 @@ def download_txt(ch, method, properties, body):
     job_id = payload["job_id"]
     filename = payload["job_file"]
     user_id = payload["user_id"]
+    s3_bucket_name = payload["s3_bucket_name"]
+    print(f"Bucket_name--->{s3_bucket_name}")
+    aws_secret_key = payload["aws_secret_key"]
+    print(f"aws_key---->{aws_secret_key}")
     print(f"filename----{filename}")
     print(job_id, filename, user_id)
     path = os.getcwd()
@@ -70,8 +81,8 @@ def download_txt(ch, method, properties, body):
     # Insert files into the audio table
 
     query = f"INSERT INTO audios (user_id, filename) VALUES ('{user_id}', '{c}.mp3');"
-    # s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
-    # s3.upload_fileobj(file, S3_BUCKET_NAME, filename)
+    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+    s3.upload_fileobj(file, S3_BUCKET_NAME, filename)
     print(f"Audio_POST--->{query}")
     connection_cursor.execute(query)
     connection.commit()

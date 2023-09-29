@@ -382,7 +382,9 @@ def audio():
                         "job_id":str(id),
                         "job_file":filename,
                         "user_id":user_id,
-                        "upload_time":str(upload_time)
+                        "upload_time":str(upload_time),
+                        "bucket_name": S3_BUCKET_NAME ,
+                        "aws_secret_key":AWS_SECRET_KEY
                     }
                     print(f"Payload---{payload}")
                     rq_channel.basic_publish(body=str(payload),exchange='',routing_key='speech_queue')
