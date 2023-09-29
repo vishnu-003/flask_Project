@@ -82,7 +82,7 @@ def download_txt(ch, method, properties, body):
 
     query = f"INSERT INTO audios (user_id, filename) VALUES ('{user_id}', '{c}.mp3');"
     s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
-    s3.upload_fileobj(file, S3_BUCKET_NAME, filename)
+    s3.upload_fileobj(filename, S3_BUCKET_NAME,f"{c}.mp3")
     print(f"Audio_POST--->{query}")
     connection_cursor.execute(query)
     connection.commit()
