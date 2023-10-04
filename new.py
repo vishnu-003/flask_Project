@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request,redirect, session,abort,make_response,jsonify, send_file, abort,flash
+from flask import Flask, render_template, request,redirect, session,make_response, send_file
 from flask_mail import Mail, Message
 import boto3
 import pymysql
@@ -317,7 +317,7 @@ def gallery():
                     connection_cursor = connection.cursor()
                     query = f"INSERT INTO images (user_id,filename) VALUE ('{user_id}', '{filename}');"
                     s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
-                    s3.upload_fileobj(file, S3_BUCKET_NAME, filename)
+                    s3.upload_file(f"{UPLOAD_FOLDER}/{user_id}/{filename}",S3_BUCKET_NAME,f"uploads/{user_id}/gallery/{filename}")
                     print(f"Gallery_POST--->{query}")
                     connection_cursor.execute(query)
                     connection.commit()
@@ -336,13 +336,24 @@ def audio():
             user_id = session.get('user_id')
             connection = db_connection()
             connection_cursor = connection.cursor()
-            query = f"SELECT user_id, filename, id FROM audios WHERE user_id='{user_id}';"
+            query = f"SELECT  *FROM speech_file WHERE user_id='{user_id}' and stage = 'completed';"
             print(f"Audio_get---->{query}")
             connection_cursor.execute(query)
             audios = connection_cursor.fetchall()
             print(f"These are the audios---->{audios}")
             connection_cursor.close()
             connection.close()
+            s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+            for elements in audios:
+                key_value=f"{elements['s3_key']}"
+                print(key_value)
+                presigned_url = s3.generate_presigned_url(
+                    ClientMethod = 'get_object',
+                    Params = {'Bucket': S3_BUCKET_NAME,
+                            'Key': key_value
+                            },
+                            ExpiresIn = 360)
+                print('url: ', presigned_url)
             return render_template('audio.html', audios=audios)
         
     if request.method == 'POST':
@@ -363,28 +374,32 @@ def audio():
                     upload_time=datetime.datetime.now()
                     stage="queued"
                     id=uuid.uuid1()
+                    # bucket_name = S3_BUCKET_NAME
+                   
+
                     path=os.getcwd()
                     print(path)
                     UPLOAD_FOLDER=os.path.join(path,'uploads')
                     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
                     filename = secure_filename(text_file.filename)
-                    os.makedirs(os.path.dirname(f"uploads/{user_id}/{filename}"), exist_ok=True)
-                    audio_path=text_file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}", filename))
-                    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
-                    s3.upload_fileobj(text_file, S3_BUCKET_NAME, filename)
-                    print(audio_path)
 
+                    key = f"uploads/{user_id}/audios/{filename}"
+                    print(f"key vlaue--->{key}")
+
+                    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+                    s3.upload_fileobj(text_file, S3_BUCKET_NAME, key)
+                   
                     #Decalre & Insert into speech_file table
-                    query2=f"INSERT INTO speech_file(job_id,job_file,user_id,upload_time,stage) VALUES('{id}','{filename}','{user_id}','{upload_time}','{stage}');"
+                    query2=f"INSERT INTO speech_file(job_id,user_id,bucket_name,s3_key,stage,upload_time) VALUES ('{id}','{user_id}','{S3_BUCKET_NAME}','{key}','{stage}','{upload_time}');"
+                    print(query2)
                     connection_cursor.execute(query2)
                     connection.commit()
                     payload={
                         "job_id":str(id),
-                        "job_file":filename,
+                        "s3_key":key,
                         "user_id":user_id,
                         "upload_time":str(upload_time),
-                        "bucket_name": S3_BUCKET_NAME ,
-                        "aws_secret_key":AWS_SECRET_KEY
+                        "bucket_name": S3_BUCKET_NAME    
                     }
                     print(f"Payload---{payload}")
                     rq_channel.basic_publish(body=str(payload),exchange='',routing_key='speech_queue')
@@ -453,7 +468,7 @@ def delete_audio(user_id, filename):
             print(f"After delete--->{path_to_delete}")
             connection = db_connection()
             connection_cursor = connection.cursor()
-            query = f"DELETE FROM audios WHERE user_id='{user_id}' AND filename='{filename}';"
+            query = f"DELETE FROM speech_file WHERE user_id='{user_id}' AND filename='{filename}';"
             print(query)
             connection_cursor.execute(query)
             connection.commit()
@@ -528,6 +543,8 @@ def ut():
                     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
                     downloadFolder = str(os.path.join(f"{app.config['UPLOAD_FOLDER']}/{user_id}"))
                     video.download(downloadFolder, filename=filename)
+                    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+                    s3.upload_file(f"{UPLOAD_FOLDER}/{user_id}/{filename}",S3_BUCKET_NAME,f"uploads/{user_id}/youtube/{filename}")
                     connection=db_connection()
                     connection_cursor=connection.cursor()
                     query = f"INSERT INTO images (user_id, filename) VALUES ('{user_id}', '{filename}');"
