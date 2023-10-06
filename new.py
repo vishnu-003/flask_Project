@@ -4,16 +4,12 @@ import boto3
 import pymysql
 import requests
 import bs4 as bs
-import pyttsx3
 import os
 import pika
 import uuid
-import datetime
 import re
 import datetime
-import uuid
 from pytube import YouTube
-from pathlib import Path
 from flask import url_for
 from random import *
 from dotenv import load_dotenv 
@@ -336,25 +332,25 @@ def audio():
             user_id = session.get('user_id')
             connection = db_connection()
             connection_cursor = connection.cursor()
-            query = f"SELECT  *FROM speech_file WHERE user_id='{user_id}' and stage = 'completed';"
+            query = f"SELECT  *FROM speech_file WHERE user_id='{user_id}' ;"
             print(f"Audio_get---->{query}")
             connection_cursor.execute(query)
             audios = connection_cursor.fetchall()
-            print(f"These are the audios---->{audios}")
+            print(f"Audios Details---->{audios}")
             connection_cursor.close()
             connection.close()
             s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+            urls=[]
             for elements in audios:
                 key_value=f"{elements['s3_key']}"
-                print(key_value)
-                presigned_url = s3.generate_presigned_url(
+                presigned_urls = s3.generate_presigned_url(
                     ClientMethod = 'get_object',
                     Params = {'Bucket': S3_BUCKET_NAME,
                             'Key': key_value
                             },
-                            ExpiresIn = 360)
-                print('url: ', presigned_url)
-            return render_template('audio.html', audios=audios)
+                            ExpiresIn = 3600)
+                urls.append(presigned_urls)
+            return render_template('audio.html', audios=audios,urls=urls)
         
     if request.method == 'POST':
         if 'user_id' in session:
@@ -362,8 +358,6 @@ def audio():
             for text_file in request.files.getlist('text_file'):
                 if text_file and allowed_file(text_file.filename):
                     filename = text_file.filename
-                    print(f"filename----->{filename}")
-                    
                     #db_connections & RabbitMQ_connections
                     connection = db_connection()
                     connection_cursor = connection.cursor()
@@ -375,20 +369,9 @@ def audio():
                     stage="queued"
                     id=uuid.uuid1()
                     # bucket_name = S3_BUCKET_NAME
-                   
-
-                    path=os.getcwd()
-                    print(path)
-                    UPLOAD_FOLDER=os.path.join(path,'uploads')
-                    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-                    filename = secure_filename(text_file.filename)
-
                     key = f"uploads/{user_id}/audios/{filename}"
-                    print(f"key vlaue--->{key}")
-
                     s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
                     s3.upload_fileobj(text_file, S3_BUCKET_NAME, key)
-                   
                     #Decalre & Insert into speech_file table
                     query2=f"INSERT INTO speech_file(job_id,user_id,bucket_name,s3_key,stage,upload_time) VALUES ('{id}','{user_id}','{S3_BUCKET_NAME}','{key}','{stage}','{upload_time}');"
                     print(query2)
@@ -401,7 +384,6 @@ def audio():
                         "upload_time":str(upload_time),
                         "bucket_name": S3_BUCKET_NAME    
                     }
-                    print(f"Payload---{payload}")
                     rq_channel.basic_publish(body=str(payload),exchange='',routing_key='speech_queue')
 
             msg="Your file has been converted into speech and downloaded" 
@@ -452,29 +434,35 @@ def delete_image(user_id, filename):
         return "Forbidden", 403
 
 #Delete functionality for deleting audio
-@app.route('/delete_audio/<int:user_id>/<filename>', methods=['POST'])
-def delete_audio(user_id, filename):
+@app.route('/delete_audio/<int:user_id>/<job_id>', methods=['POST'])
+def delete_audio(user_id,job_id):
     session_user_id = session.get('user_id')
     if session_user_id is not None and str(session_user_id) == str(user_id):
-        path_to_delete = os.path.join('uploads', str(user_id), filename)
-        base=os.path.basename(f"{path_to_delete}")
-        b=os.path.splitext(base)
-        c=os.path.splitext(base)[0]
-        path_to_delete1 = os.path.join('uploads', str(user_id), f"{c}.txt")
-        print(f"path_to_delete---->{path_to_delete}")
-        if os.path.exists(path_to_delete):
-            os.remove(path_to_delete)
-            os.remove(path_to_delete1)
-            print(f"After delete--->{path_to_delete}")
-            connection = db_connection()
-            connection_cursor = connection.cursor()
-            query = f"DELETE FROM speech_file WHERE user_id='{user_id}' AND filename='{filename}';"
-            print(query)
-            connection_cursor.execute(query)
-            connection.commit()
-            connection_cursor.close()
-            connection.close()
+        connection = db_connection()
+        connection_cursor1 = connection.cursor()
+        query2 = f"SELECT *FROM speech_file WHERE user_id='{user_id}' and  job_id='{job_id}';"
+        print(query2)
+        connection_cursor1.execute(query2)
+        s3_keys = connection_cursor1.fetchall()
+        print(f"s3_keys---->{s3_keys}")
+        s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY, region_name=S3_REGION)
+        s3_delete=s3_keys[0]['s3_key']
+        print(f"--------------->{s3_delete}")
+        response =s3.delete_object(Bucket=S3_BUCKET_NAME,Key=s3_delete,)
+        base = os.path.basename(s3_delete)
+        c = os.path.splitext(base)[0]
+        response =s3.delete_object(Bucket=S3_BUCKET_NAME,Key=f"uploads/49/audios/{c}.txt",)
+        print(response)
 
+        connection_cursor1.close()
+        connection_cursor = connection.cursor()
+        print(job_id)
+        query = f"DELETE FROM speech_file WHERE user_id='{user_id}' AND job_id='{job_id}';"
+        print(query)
+        connection_cursor.execute(query)
+        connection.commit()
+        connection_cursor.close()
+        connection.close()
         return redirect(url_for('audio'))
     else:
         return "Forbidden", 403

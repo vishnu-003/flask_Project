@@ -60,12 +60,14 @@ def download_txt(ch, method, properties, body):
     filename = payload["s3_key"]
     user_id = payload["user_id"]
     s3_bucket_name = payload["bucket_name"]
+
     obj = s3_R.Object(s3_bucket_name,filename )
     a=obj.get()['Body'].read().decode('utf-8')
     print(a)
     base = os.path.basename(filename)
     c = os.path.splitext(base)[0]
     print(c)
+    
     path = os.getcwd()
     UPLOAD_FOLDER = os.path.join(path, 'uploads')
     if not os.path.exists(os.path.join(filename)):
@@ -76,9 +78,8 @@ def download_txt(ch, method, properties, body):
     engine.runAndWait()
     engine.stop()
     print(UPLOAD_FOLDER)
-    s3_C.upload_file(f"{UPLOAD_FOLDER}/{user_id}/{c}.mp3",s3_bucket_name,f"uploads/{user_id}/audios/{c}.mp3")
+    s3_C.upload_file(f'{UPLOAD_FOLDER}/{user_id}/{c}.mp3',s3_bucket_name,f"uploads/{user_id}/audios/{c}.mp3")
     os.remove(f"{UPLOAD_FOLDER}/{user_id}/{c}.mp3")
-
     path = f"uploads/{user_id}/audios/{c}.txt"
     try:
        os.rmdir(path)
@@ -86,12 +87,10 @@ def download_txt(ch, method, properties, body):
     except OSError as x:
         print("Error occured: %s : %s" % (path, x.strerror))
 
-
-
-    # query = f"INSERT INTO audios (user_id, filename) VALUES ('{user_id}', '{c}.mp3');"
-    # print(f"Audio_POST--->{query}")
-    # connection_cursor.execute(query)
-    # connection.commit()
+    query = f"INSERT INTO audios (user_id, filename) VALUES ('{user_id}', '{c}.mp3');"
+    print(f"Audio_POST--->{query}")
+    connection_cursor.execute(query)
+    connection.commit()
 
     # Updating the stage
     path1 = f"uploads/{user_id}/audios/{c}.mp3"

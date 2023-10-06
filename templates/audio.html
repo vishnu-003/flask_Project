@@ -1,16 +1,3 @@
-<!-- <!DOCTYPE html>
-<html>
-   <head>
-      <title>Text to Audio Converter</title>
-   </head>
-   <body>
-      <h1>Upload a Text File</h1>
-      <form method="POST" action="/convert" enctype="multipart/form-data">
-         <input type="file" name="text_file" accept=".txt">
-         <input type="submit" value="Convert to Audio">
-      </form>
-   </body>
-</html> -->
 
 <html>
 {% include 'head.html' %}
@@ -25,24 +12,31 @@
       <input type="submit" value="Convert to Audio">
    </form>
    <div class="row">
-      {% for audio in audios %}
+      {% for url in urls %}
       <div class="col-md-4">
          <div class="thumbnail">
           <audio width="200" height="200" controls>
-           <source src="/uploads/{{audio['user_id']}}/{{audio['filename']}}"  >
-            <a href="/uploads/{{audio['user_id']}}/{{audio['filename']}}" target="_blank"> </a>
-          </audio>
-           <form method="POST" action="/delete_audio/{{audio['user_id']}}/{{audio['filename']}}">
-              <button type="submit" class="btn btn-danger">Delete</button>
-           </form>
-           </div>
-           
+           <source src="{{url}}" >
+            <a href="{{url}}" target="_blank"> </a>
+            </audio>
          </div>
       </div>
       {% endfor %}
    </div>
+
+       {% for audio in audios %}
+       <div class="col-md-4">
+          <div class="thumbnail">
+            <form method="POST" action="/delete_audio/{{audio['user_id']}}/{{audio['job_id']}}">
+               <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+            
+       </div>
+       {% endfor %}
+    </div>
    {% if msg %}
    {{msg}}
    {% endif%}
 </body>
 </html>
+
