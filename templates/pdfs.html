@@ -1,0 +1,36 @@
+
+<html>
+<head>
+    <title>Convert Text to Pdfs</title>
+</head>
+
+<body>
+  
+</div>
+<div class="container">
+   <h1>Upload a Text File</h1>
+   <form method="POST" action="/pdfs" enctype="multipart/form-data">
+      <input type="file" name="text_file" accept=".txt" multiple>
+      <input type="submit" value="Convert to Pdfs">
+   </form>
+   <div>
+      {% for pdf_file in users %}
+      <center>
+    
+		<iframe src= "{{ pdf_file }}" width="500" height="400" type="application/pdf">
+				width="800"
+				height="500"> 
+		</iframe> 
+	</center> 
+   {%endfor%}
+</body> 
+</html>
+<div>
+{% if msg %}
+{{msg}}
+{% endif%}
+</div>
+   </div>
+</body>
+</html>
+
